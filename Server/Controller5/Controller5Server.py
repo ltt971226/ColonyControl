@@ -126,7 +126,7 @@ class RPCServer(object):
         super(RPCServer, self).__init__()
         print(self)
         self.resp = {'mechine':'Controller1','mode':-1,'succeedCode':False, 'gather_data':{}}
-        self.control_data5 = {}
+        
         #init
         connect_init()
         en = joint_enable()
@@ -199,7 +199,7 @@ class RPCServer(object):
                     #print(key,':',val[i])
                 self.resp = {'mechine':'Controller1','mode':1,'succeedCode':True, 'gather_data':{}}
                 return self.resp
-               
+    	
         elif control_data['mode']  ==  4:
             gather_data = {}
             for ip in sub_ips:
@@ -209,23 +209,14 @@ class RPCServer(object):
             return self.resp
         elif control_data['mode']  ==  5:
             print(control_data['track_stream'])
-            if control_data['track_stream']:
-                self.control_data5 = control_data['track_stream']
-
-                        #pos_dict[key] = val[i]
-                    #aios.trapezoidalMoveClose(pos_dict, False, sub_ips,1,300)
-            self.resp = {'mechine':'Controller1','mode':5,'succeedCode':True, 'gather_data':{}}
-            return self.resp
-        elif control_data['mode'] == 55:
-            if self.control_data5 == {}:
-                return  {'mechine':'Controller1','mode':5,'succeedCode':False, 'gather_data':{}}
-            else:
-                for i in range(len(self.control_data5['track_stream'][sub_ips[0]])):
-                    for key,val in  self.control_data5['track_stream'].items():
+            en = joint_enable()
+            if en:
+                for i in range(len(control_data['track_stream'][sub_ips[0]])):
+                    for key,val in  control_data['track_stream'].items():
                         aios.trapezoidalMove(val[i], False, key, 1)
                     time.sleep(t)
-
-
+            self.resp = {'mechine':'Controller1','mode':5,'succeedCode':True, 'gather_data':{}}
+            return self.resp            
     def reply(self):
         return self.resp
         
