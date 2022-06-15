@@ -3,11 +3,513 @@ import time
 from Difference import Difference
 from threading import Thread  # 导入线程函数
 from multiprocessing import Process
+from tkinter import *
+from tkinter import filedialog, messagebox
+from tkinter import Scrollbar, Checkbutton, Label, Button
+import numpy as np
+from flask import Flask, render_template,request,redirect,url_for,Response, json,jsonify
+import os
+import tkinter as tk
+
+from scapy.all import srp,Ether,ARP,conf
+import socket
+
+app = Flask(__name__)
+
+def get_dict_key(dic, value):
+    key = list(dic.keys())[list(dic.values()).index(value)]
+    return key
+
+class Operate():
+
+    def __init__(self):
+
+        self.arm_ip = {}
+        self.CtrC = {}
+        self.oncheck = False
+        self.action = [
+            {
+            'arm1':{
+            '10.10.10.11': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+                            1.5, 1.5, 0.44, 0.44, 0.44, 0.44],
+            '10.10.10.12': [0.44, -67705.56, -67701.5, -67701.5, -67701.5, -67349.56, -67350.56, -67359.56, -68266.5,
+                            -68266.56, -68267.56, -68269.56, -68269.56, -68267.5, -68269.56, -76129.5, -67181.5,
+                            -67182.56, -57083.56, -57083.56, -68495.5, -68500.56, -19360.56, 547.5],
+            '10.10.10.13': [0.5, 42.5, 87.44, 86.44, 86.44, 46.5, 46.5, 53.5, 48.44, 50.5, 52.5, 52.5, 51.44, 49.44,
+                            50.5, 55.5, 50.5, 51.5, 2712.5, 2712.5, 2708.44, 2708.44, 2708.44, 463.5],
+            '10.10.10.14': [0.44, 17016.5, 46798.44, 68174.5, 68174.5, 68001.44, 68009.44, 64836.5, 68904.44, 68834.5,
+                            68839.5, 68841.5, 68840.44, 68841.5, 69038.44, 95713.44, 67019.5, 65328.44, 39263.44,
+                            71413.44, 71367.44, 71411.5, 20216.44, 20.44],
+            '10.10.10.15': [0.5, 37.5, 16.44, 16.44, 16.44, 14.44, 14.44, 14.44, 8.44, 8.44, 8.44, 8.44, 8.44, 8.44,
+                            8.44, 16.5, 16.5, 16.5, -0.56, -0.56, -0.56, -0.56, 15.5, 1215.44],
+            '10.10.10.16': [-0.56, 17785.5, 17894.5, 17482.5, 17482.5, -10705.5, -15168.56, -13549.5, 19691.5, 45340.5,
+                            55600.5, 57301.44, 21740.88, 19844.44, 47595.75, 59497.44, 17659.44, -11242.06, -22987.5,
+                            6284.5, 21707.57, 21872.44, 21777.44, -942.56],
+            '10.10.10.17': [-0.56, 817.44, 791, 791, 791, -15214, -43039.69, -878.57, -891.57, -20236, 2178, 30009,
+                            30002.43, 4754, -1207.57, -1218.57, -1215, -1213, -1208.57, -1210.57, -1210.57, -1210.57,
+                            -1203, -217.57]},
+
+            'arm2':{
+            '10.10.10.11': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+                            1.5, 1.5, 0.44, 0.44, 0.44, 0.44],
+            '10.10.10.12': [0.44, -67705.56, -67701.5, -67701.5, -67701.5, -67349.56, -67350.56, -67359.56, -68266.5,
+                            -68266.56, -68267.56, -68269.56, -68269.56, -68267.5, -68269.56, -76129.5, -67181.5,
+                            -67182.56, -57083.56, -57083.56, -68495.5, -68500.56, -19360.56, 547.5],
+            '10.10.10.13': [0.5, 42.5, 87.44, 86.44, 86.44, 46.5, 46.5, 53.5, 48.44, 50.5, 52.5, 52.5, 51.44, 49.44,
+                            50.5, 55.5, 50.5, 51.5, 2712.5, 2712.5, 2708.44, 2708.44, 2708.44, 463.5],
+            '10.10.10.14': [0.44, 17016.5, 46798.44, 68174.5, 68174.5, 68001.44, 68009.44, 64836.5, 68904.44, 68834.5,
+                            68839.5, 68841.5, 68840.44, 68841.5, 69038.44, 95713.44, 67019.5, 65328.44, 39263.44,
+                            71413.44, 71367.44, 71411.5, 20216.44, 20.44],
+            '10.10.10.15': [0.5, 37.5, 16.44, 16.44, 16.44, 14.44, 14.44, 14.44, 8.44, 8.44, 8.44, 8.44, 8.44, 8.44,
+                            8.44, 16.5, 16.5, 16.5, -0.56, -0.56, -0.56, -0.56, 15.5, 1215.44],
+            '10.10.10.16': [-0.56, 17785.5, 17894.5, 17482.5, 17482.5, -10705.5, -15168.56, -13549.5, 19691.5, 45340.5,
+                            55600.5, 57301.44, 21740.88, 19844.44, 47595.75, 59497.44, 17659.44, -11242.06, -22987.5,
+                            6284.5, 21707.57, 21872.44, 21777.44, -942.56],
+            '10.10.10.17': [-0.56, 817.44, 791, 791, 791, -15214, -43039.69, -878.57, -891.57, -20236, 2178, 30009,
+                            30002.43, 4754, -1207.57, -1218.57, -1215, -1213, -1208.57, -1210.57, -1210.57, -1210.57,
+                            -1203, -217.57]},
+            'arm3': {
+                '10.10.10.11': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+                                1.5,
+                                1.5, 1.5, 0.44, 0.44, 0.44, 0.44],
+                '10.10.10.12': [0.44, -67705.56, -67701.5, -67701.5, -67701.5, -67349.56, -67350.56, -67359.56,
+                                -68266.5,
+                                -68266.56, -68267.56, -68269.56, -68269.56, -68267.5, -68269.56, -76129.5, -67181.5,
+                                -67182.56, -57083.56, -57083.56, -68495.5, -68500.56, -19360.56, 547.5],
+                '10.10.10.13': [0.5, 42.5, 87.44, 86.44, 86.44, 46.5, 46.5, 53.5, 48.44, 50.5, 52.5, 52.5, 51.44, 49.44,
+                                50.5, 55.5, 50.5, 51.5, 2712.5, 2712.5, 2708.44, 2708.44, 2708.44, 463.5],
+                '10.10.10.14': [0.44, 17016.5, 46798.44, 68174.5, 68174.5, 68001.44, 68009.44, 64836.5, 68904.44,
+                                68834.5,
+                                68839.5, 68841.5, 68840.44, 68841.5, 69038.44, 95713.44, 67019.5, 65328.44, 39263.44,
+                                71413.44, 71367.44, 71411.5, 20216.44, 20.44],
+                '10.10.10.15': [0.5, 37.5, 16.44, 16.44, 16.44, 14.44, 14.44, 14.44, 8.44, 8.44, 8.44, 8.44, 8.44, 8.44,
+                                8.44, 16.5, 16.5, 16.5, -0.56, -0.56, -0.56, -0.56, 15.5, 1215.44],
+                '10.10.10.16': [-0.56, 17785.5, 17894.5, 17482.5, 17482.5, -10705.5, -15168.56, -13549.5, 19691.5,
+                                45340.5,
+                                55600.5, 57301.44, 21740.88, 19844.44, 47595.75, 59497.44, 17659.44, -11242.06,
+                                -22987.5,
+                                6284.5, 21707.57, 21872.44, 21777.44, -942.56],
+                '10.10.10.17': [-0.56, 817.44, 791, 791, 791, -15214, -43039.69, -878.57, -891.57, -20236, 2178, 30009,
+                                30002.43, 4754, -1207.57, -1218.57, -1215, -1213, -1208.57, -1210.57, -1210.57,
+                                -1210.57,
+                                -1203, -217.57]},
+            },
+            {
+                'arm1': {
+                    '10.10.10.11': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+                                    1.5,
+                                    1.5, 1.5, 0.44, 0.44, 0.44, 0.44],
+                    '10.10.10.12': [0.44, -67705.56, -67701.5, -67701.5, -67701.5, -67349.56, -67350.56, -67359.56,
+                                    -68266.5,
+                                    -68266.56, -68267.56, -68269.56, -68269.56, -68267.5, -68269.56, -76129.5, -67181.5,
+                                    -67182.56, -57083.56, -57083.56, -68495.5, -68500.56, -19360.56, 547.5],
+                    '10.10.10.13': [0.5, 42.5, 87.44, 86.44, 86.44, 46.5, 46.5, 53.5, 48.44, 50.5, 52.5, 52.5, 51.44,
+                                    49.44,
+                                    50.5, 55.5, 50.5, 51.5, 2712.5, 2712.5, 2708.44, 2708.44, 2708.44, 463.5],
+                    '10.10.10.14': [0.44, 17016.5, 46798.44, 68174.5, 68174.5, 68001.44, 68009.44, 64836.5, 68904.44,
+                                    68834.5,
+                                    68839.5, 68841.5, 68840.44, 68841.5, 69038.44, 95713.44, 67019.5, 65328.44,
+                                    39263.44,
+                                    71413.44, 71367.44, 71411.5, 20216.44, 20.44],
+                    '10.10.10.15': [0.5, 37.5, 16.44, 16.44, 16.44, 14.44, 14.44, 14.44, 8.44, 8.44, 8.44, 8.44, 8.44,
+                                    8.44,
+                                    8.44, 16.5, 16.5, 16.5, -0.56, -0.56, -0.56, -0.56, 15.5, 1215.44],
+                    '10.10.10.16': [-0.56, 17785.5, 17894.5, 17482.5, 17482.5, -10705.5, -15168.56, -13549.5, 19691.5,
+                                    45340.5,
+                                    55600.5, 57301.44, 21740.88, 19844.44, 47595.75, 59497.44, 17659.44, -11242.06,
+                                    -22987.5,
+                                    6284.5, 21707.57, 21872.44, 21777.44, -942.56],
+                    '10.10.10.17': [-0.56, 817.44, 791, 791, 791, -15214, -43039.69, -878.57, -891.57, -20236, 2178,
+                                    30009,
+                                    30002.43, 4754, -1207.57, -1218.57, -1215, -1213, -1208.57, -1210.57, -1210.57,
+                                    -1210.57,
+                                    -1203, -217.57]},
+
+                'arm2': {
+                    '10.10.10.11': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+                                    1.5,
+                                    1.5, 1.5, 0.44, 0.44, 0.44, 0.44],
+                    '10.10.10.12': [0.44, -67705.56, -67701.5, -67701.5, -67701.5, -67349.56, -67350.56, -67359.56,
+                                    -68266.5,
+                                    -68266.56, -68267.56, -68269.56, -68269.56, -68267.5, -68269.56, -76129.5, -67181.5,
+                                    -67182.56, -57083.56, -57083.56, -68495.5, -68500.56, -19360.56, 547.5],
+                    '10.10.10.13': [0.5, 42.5, 87.44, 86.44, 86.44, 46.5, 46.5, 53.5, 48.44, 50.5, 52.5, 52.5, 51.44,
+                                    49.44,
+                                    50.5, 55.5, 50.5, 51.5, 2712.5, 2712.5, 2708.44, 2708.44, 2708.44, 463.5],
+                    '10.10.10.14': [0.44, 17016.5, 46798.44, 68174.5, 68174.5, 68001.44, 68009.44, 64836.5, 68904.44,
+                                    68834.5,
+                                    68839.5, 68841.5, 68840.44, 68841.5, 69038.44, 95713.44, 67019.5, 65328.44,
+                                    39263.44,
+                                    71413.44, 71367.44, 71411.5, 20216.44, 20.44],
+                    '10.10.10.15': [0.5, 37.5, 16.44, 16.44, 16.44, 14.44, 14.44, 14.44, 8.44, 8.44, 8.44, 8.44, 8.44,
+                                    8.44,
+                                    8.44, 16.5, 16.5, 16.5, -0.56, -0.56, -0.56, -0.56, 15.5, 1215.44],
+                    '10.10.10.16': [-0.56, 17785.5, 17894.5, 17482.5, 17482.5, -10705.5, -15168.56, -13549.5, 19691.5,
+                                    45340.5,
+                                    55600.5, 57301.44, 21740.88, 19844.44, 47595.75, 59497.44, 17659.44, -11242.06,
+                                    -22987.5,
+                                    6284.5, 21707.57, 21872.44, 21777.44, -942.56],
+                    '10.10.10.17': [-0.56, 817.44, 791, 791, 791, -15214, -43039.69, -878.57, -891.57, -20236, 2178,
+                                    30009,
+                                    30002.43, 4754, -1207.57, -1218.57, -1215, -1213, -1208.57, -1210.57, -1210.57,
+                                    -1210.57,
+                                    -1203, -217.57]},
+                'arm3': {
+                    '10.10.10.11': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5,
+                                    1.5,
+                                    1.5, 1.5, 0.44, 0.44, 0.44, 0.44],
+                    '10.10.10.12': [0.44, -67705.56, -67701.5, -67701.5, -67701.5, -67349.56, -67350.56, -67359.56,
+                                    -68266.5,
+                                    -68266.56, -68267.56, -68269.56, -68269.56, -68267.5, -68269.56, -76129.5, -67181.5,
+                                    -67182.56, -57083.56, -57083.56, -68495.5, -68500.56, -19360.56, 547.5],
+                    '10.10.10.13': [0.5, 42.5, 87.44, 86.44, 86.44, 46.5, 46.5, 53.5, 48.44, 50.5, 52.5, 52.5, 51.44,
+                                    49.44,
+                                    50.5, 55.5, 50.5, 51.5, 2712.5, 2712.5, 2708.44, 2708.44, 2708.44, 463.5],
+                    '10.10.10.14': [0.44, 17016.5, 46798.44, 68174.5, 68174.5, 68001.44, 68009.44, 64836.5, 68904.44,
+                                    68834.5,
+                                    68839.5, 68841.5, 68840.44, 68841.5, 69038.44, 95713.44, 67019.5, 65328.44,
+                                    39263.44,
+                                    71413.44, 71367.44, 71411.5, 20216.44, 20.44],
+                    '10.10.10.15': [0.5, 37.5, 16.44, 16.44, 16.44, 14.44, 14.44, 14.44, 8.44, 8.44, 8.44, 8.44, 8.44,
+                                    8.44,
+                                    8.44, 16.5, 16.5, 16.5, -0.56, -0.56, -0.56, -0.56, 15.5, 1215.44],
+                    '10.10.10.16': [-0.56, 17785.5, 17894.5, 17482.5, 17482.5, -10705.5, -15168.56, -13549.5, 19691.5,
+                                    45340.5,
+                                    55600.5, 57301.44, 21740.88, 19844.44, 47595.75, 59497.44, 17659.44, -11242.06,
+                                    -22987.5,
+                                    6284.5, 21707.57, 21872.44, 21777.44, -942.56],
+                    '10.10.10.17': [-0.56, 817.44, 791, 791, 791, -15214, -43039.69, -878.57, -891.57, -20236, 2178,
+                                    30009,
+                                    30002.43, 4754, -1207.57, -1218.57, -1215, -1213, -1208.57, -1210.57, -1210.57,
+                                    -1210.57,
+                                    -1203, -217.57]},
+            },
+
+
+        ]
+        self.ip_batch = [
+
+        ]
+
+OP = Operate()
+
+
+
+def get_raspberry_list():
+    ipscan='192.168.1.1/24'
+    ip_mac = {}
+    try:
+        ans,unans = srp(Ether(dst="FF:FF:FF:FF:FF:FF")/ARP(pdst=ipscan),timeout=2,verbose=False)
+    except Exception as e:
+        print(str(e))
+    else:
+        for snd,rcv in ans:
+            list_mac=rcv.sprintf("%Ether.src% - %ARP.psrc%")
+            ip = list_mac.split('-')[1].strip()
+            mac = list_mac.split('-')[0].strip()
+            list_mac = list_mac + ' - ' + str(socket.gethostbyaddr(ip))
+            if 'shumei' in str(socket.gethostbyaddr(ip)) or True:
+                ip_mac[ip]=mac
+    return ip_mac
+
+def get_raspberry_mac(ip):
+    raspberry =   get_raspberry_list()
+    if ip not in raspberry:
+        return ''
+    else:
+        return raspberry[ip]
 
 
 
 
+'''
+搭建访问接口
+'''
+#执行器ip编辑
+@app.route('/api/ip/edit', methods = ['Post'])
+def actuator_ip_edit():
+    status = 'yes'
+    msg = 'success'
+    print("执行器ip：", request.json.get('ip'))
+    print("执行器序号：", request.json.get('actuator'))
+    print("树莓派ip：", request.json.get('raspberry_ip'))
+    return jsonify({'status': status, 'msg': msg})
 
+#查询ip
+@app.route('/api/ip/msg', methods=['Get'])
+def search_ip():
+    status = 'yes'
+    msg = 'success'
+    print("查询模式：", "自动查询" if int(request.args.get('mode')) == 1 else "手动查询")
+    print("树莓派ip：", request.args.get('ip'))
+    ip_list = []
+    if request.args.get('mode') == '1':
+        raspberry = get_raspberry_list()
+        if raspberry == {}:
+            status = 'no'
+            msg = "Failed! Don not find any ip."
+        else:
+            for ip,mac in raspberry.items():
+                ip_list.append({
+                    'ip':ip,
+                    'id':mac
+                })
+    if request.args.get('mode') == '2':
+        mac = get_raspberry_mac(request.args.get('ip'))
+        if mac == '':
+            status = 'no'
+            msg = "Failed! Don not find matching serial number."
+        else:
+            ip_list.append(
+                {
+                    'ip': request.args.get('ip'),
+                    'id': mac
+                })
+
+    return jsonify({'status': status, 'msg': msg,'ip_list':ip_list})
+
+#ip选择
+@app.route('/api/ip/choose', methods = ['POST'])
+def ip_choose():
+
+
+    status = 'yes'
+    msg = 'success'
+
+    raspberry_ip =request.json.get('ip')
+    arm_num = int(request.json.get('arm_num'))
+    print("树莓派ip：", raspberry_ip)
+    print("树莓派序号：", arm_num)
+    OP.arm_ip[raspberry_ip] = arm_num
+    OP.CtrC[raspberry_ip] = zerorpc.Client(heartbeat=None, timeout=300)
+    try:
+        OP.CtrC[raspberry_ip].connect('tcp://'+ raspberry_ip +':4243')
+    except Exception as err:
+        status = 'no'
+        msg = 'Failed to connect raspberry PI! msg: %s'%err
+        return jsonify({'status': status, 'msg': msg})
+
+    return jsonify({'status': 'yes', 'msg': 'success'})
+
+#树莓派启动
+app.route('/api/ip/launch', methods = ['POST'])
+def raspberry_launch():
+
+    status = 'yes'
+    msg = 'success'
+    raspberry_ip =request.json.get('ip')
+
+    return jsonify({'status': status, 'msg': msg})
+
+
+#导入数据ip
+@app.route('/api/ip/import',methods=['POST'])
+def ip_alter():
+    status = 'yes'
+    msg = 'success'
+    import_list = request.json.get('import_list')
+    print(import_list)
+
+    return jsonify({'status': status, 'msg': msg})
+
+
+
+#批量修改ip
+@app.route('/api/ip/alter',methods=['POST'])
+def ip_import():
+    status = 'yes'
+    msg = 'success'
+    alter_list = request.json.get('alter_list')
+    print(alter_list)
+    OP.ip_batch.append(alter_list)
+    return jsonify({'status': status, 'msg': msg})
+
+
+#获取批量修改列表
+@app.route('/api/ip/get-batch',methods=['GET'])
+def get_batch():
+    status = 'yes'
+    msg = 'success'
+
+    return jsonify({'status': status, 'msg': msg, 'ip_batch':OP.ip_batch})
+
+
+
+#开机自检置位
+@app.route('/api/check/oncheck', methods = ['POST'])
+def on_check():
+    status = 'yes'
+    msg = 'success'
+    oncheck = int(request.args.get('oncheck'))
+    if oncheck:
+        OP.oncheck = True
+    return jsonify({'status': status, 'msg': msg})
+    # return Response(json.dumps({'status': status, 'msg': msg}))
+
+
+#获取开机自检置位
+@app.route('/api/check/query-oncheck', methods = ['GET'])
+def query_check():
+    status = 'yes'
+    msg = 'success'
+
+    return jsonify({'status': status, 'msg': msg, 'oncheck':OP.oncheck})
+    # return Response(json.dumps({'status': status, 'msg': msg}))
+
+
+# 获取自检信息
+@app.route('/api/check/get-check', methods=['GET'])
+def get_check():
+    status = 'yes'
+    msg = 'success'
+    oncheck = int(request.args.get('oncheck'))
+    delay_err_list = []
+    delay_err = {}
+    if oncheck:
+        for ip, ctr in OP.CtrC.items():
+            delay_err['delay'] = ctr.delay_err()['delay_time']
+            delay_err['err_msg'] = ctr.delay_err()['err_msg']
+            delay_err['arm_num'] = OP.arm_ip[ip]
+            delay_err_list.append(delay_err)
+
+    return jsonify({'status': status, 'msg': msg,'delay_err':delay_err_list})
+
+#手动检查
+@app.route('/api/check/handcheck', methods=['GET'])
+def hand_check():
+    status = 'yes'
+    msg = 'success'
+    arm_num = int(request.args.get('arm_num'))
+    arm_ip = get_dict_key(OP.arm_ip,arm_num)
+    delay_err = {}
+    OP.CtrC[arm_ip].delay_err()
+    delay_err['delay'] = OP.CtrC[arm_ip].delay_err()['delay_time']
+    delay_err['err_msg'] = OP.CtrC[arm_ip].delay_err()['err_msg']
+    return jsonify({'status': status, 'msg': msg, 'data': delay_err})
+
+#通信延迟查看
+@app.route('/api/check/delay', methods=['Get'])
+def check_delay():
+    status = 'yes'
+    msg = 'success'
+    arm_num = int(request.args.get('arm_num'))
+    print("机械臂编号：", arm_num)
+
+    data = []
+    '''TODO
+    查询各执行器延迟
+    '''
+    if arm_num == 1:
+        data.append({'actuator_num':1,'ip':'10.10.10.11','delay':'345ms','delay_num':123})
+        data.append({'actuator_num': 1, 'ip': '10.10.10.11', 'delay': '345ms', 'delay_num': 123})
+        data.append({'actuator_num': 1, 'ip': '10.10.10.11', 'delay': '345ms', 'delay_num': 123})
+        data.append({'actuator_num': 1, 'ip': '10.10.10.11', 'delay': '345ms', 'delay_num': 123})
+    elif arm_num ==2:
+        pass
+    elif arm_num ==3:
+        pass
+    elif arm_num ==4:
+        pass
+    elif arm_num ==5:
+        pass
+    elif arm_num ==6:
+        pass
+    elif arm_num ==7:
+        pass
+
+
+    if data ==[]:
+        status = 'no'
+        mag = "Do not have delay massage"
+
+    return jsonify({'status': status, 'msg': msg,'data':data})
+
+
+#执行器报错信息查看
+app.route('/api/check/actuatorerr',methods=['GET'])
+def actuator_err():
+    status = 'yes'
+    msg = 'success'
+    arm_ip = request.args.get('arm_ip')
+
+
+    delay_err = {}
+    OP.CtrC[arm_ip].delay_err()
+    delay_err['delay'] = OP.CtrC[arm_ip].delay_err()['delay_time']
+    delay_err['err_msg'] = OP.CtrC[arm_ip].delay_err()['err_msg']
+    return jsonify({'status': status, 'msg': msg, 'data': delay_err})
+
+#动作演示操作
+@app.route('/api/display/operation',methods = ['POST'])
+def action_display():
+    status = 'yes'
+    msg = 'success'
+    act = request.json#.get('arm_choose')
+    print(act)
+    return jsonify({'status': status, 'msg': msg})
+    # return Response(json.dumps({'status': status, 'msg': msg}))
+
+#单机械臂操作
+@app.route('/api/display/arm-op',methods=['POST'])
+def arm_op():
+    status = 'yes'
+    msg = 'success'
+    arm_ip = request.args.get('arm_ip')
+    op_mode = request.args.get('op_mode')#	0表示归位，1表示软急停，2表示硬急停
+    if op_mode == 0:
+        OP.CtrC[arm_ip].back_start()
+    elif op_mode == 1:
+        OP.CtrC[arm_ip].em_stop()
+    elif op_mode ==2:
+        OP.CtrC[arm_ip].hw_stop()
+    return jsonify({'status': status, 'msg': msg})
+
+#获取动作数据
+@app.route('/api/gather/get-action', methods=['GET'])
+def get_action():
+    status = 'yes'
+    msg = 'success'
+    action = []
+    for ac in OP.action:
+        action.append({'data':str(ac),'description':'1234'})
+
+    return jsonify({'status': status, 'msg': msg,'action':action})
+
+#清除某个动作
+@app.route('/api/gather/delete', methods=['POST'])
+def delete_action():
+    status = 'yes'
+    msg = 'success'
+    action_number = int(request.args.get('action_number'))
+    OP.action.pop(action_number-1)
+    return jsonify({'status': status, 'msg': msg})
+
+#保存动作
+@app.route('/api/gather/save', methods=['POST'])
+def save_action():
+    status = 'yes'
+    msg = 'success'
+    save_ac = request.json
+    action_num = int(save_ac['action_num'])
+    del save_ac['action_num']
+    OP.action[action_num-1] = save_ac
+    return jsonify({'status': status, 'msg': msg})
+
+#总急停
+@app.route('/api/em-stop', methods=['POST'])
+def en_stop():
+    status = 'yes'
+    msg = 'success'
+    stop_type = request.args.get('type')
+    if stop_type == 's':
+        for ip, ctr in OP.CtrC.items():
+            ctr.em_stop()
+    elif stop_type == 'h':
+        for ip, ctr in OP.CtrC.items():
+            ctr.hw_stop()
+    return jsonify({'status': status, 'msg': msg})
+
+S = '急停和运动'
 Controller1IP = ['10.10.10.11', '10.10.10.12', '10.10.10.13', '10.10.10.14', '10.10.10.15', '10.10.10.16','10.10.10.17']
 Controller1DefaultQ = []
 Controller2IP = ['10.10.10.11', '10.10.10.12', '10.10.10.13', '10.10.10.14', '10.10.10.15', '10.10.10.16','10.10.10.17']
@@ -20,12 +522,7 @@ Controller5IP = ['10.10.10.11', '10.10.10.12', '10.10.10.13', '10.10.10.14', '10
 Controller5DefaultQ = []
 Controller6IP = ['10.10.10.11', '10.10.10.12', '10.10.10.13', '10.10.10.14', '10.10.10.15', '10.10.10.16','10.10.10.17']
 Controller6DefaultQ = []
-
-
-T = 0.6
-
-
-
+T = 0.8
 #  动作1
 Controller1StepDefaultQ =  {'10.10.10.11': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 0.44, 0.44, 0.44, 0.44], '10.10.10.12': [0.44, -67705.56, -67701.5, -67701.5, -67701.5, -67349.56, -67350.56, -67359.56, -68266.5, -68266.56, -68267.56, -68269.56, -68269.56, -68267.5, -68269.56, -76129.5, -67181.5, -67182.56, -57083.56, -57083.56, -68495.5, -68500.56, -19360.56, 547.5], '10.10.10.13': [0.5, 42.5, 87.44, 86.44, 86.44, 46.5, 46.5, 53.5, 48.44, 50.5, 52.5, 52.5, 51.44, 49.44, 50.5, 55.5, 50.5, 51.5, 2712.5, 2712.5, 2708.44, 2708.44, 2708.44, 463.5], '10.10.10.14': [0.44, 17016.5, 46798.44, 68174.5, 68174.5, 68001.44, 68009.44, 64836.5, 68904.44, 68834.5, 68839.5, 68841.5, 68840.44, 68841.5, 69038.44, 95713.44, 67019.5, 65328.44, 39263.44, 71413.44, 71367.44, 71411.5, 20216.44, 20.44], '10.10.10.15': [0.5, 37.5, 16.44, 16.44, 16.44, 14.44, 14.44, 14.44, 8.44, 8.44, 8.44, 8.44, 8.44, 8.44, 8.44, 16.5, 16.5, 16.5, -0.56, -0.56, -0.56, -0.56, 15.5, 1215.44], '10.10.10.16': [-0.56, 17785.5, 17894.5, 17482.5, 17482.5, -10705.5, -15168.56, -13549.5, 19691.5, 45340.5, 55600.5, 57301.44, 21740.88, 19844.44, 47595.75, 59497.44, 17659.44, -11242.06, -22987.5, 6284.5, 21707.57, 21872.44, 21777.44, -942.56], '10.10.10.17': [-0.56, 817.44, 791, 791, 791, -15214, -43039.69, -878.57, -891.57, -20236, 2178, 30009, 30002.43, 4754, -1207.57, -1218.57, -1215, -1213, -1208.57, -1210.57, -1210.57, -1210.57, -1203, -217.57]}
 Controller2StepDefaultQ =  {'10.10.10.11': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 0.44, 0.44, 0.44, 0.44], '10.10.10.12': [0.44, -67705.56, -67701.5, -67701.5, -67701.5, -67349.56, -67350.56, -67359.56, -68266.5, -68266.56, -68267.56, -68269.56, -68269.56, -68267.5, -68269.56, -76129.5, -67181.5, -67182.56, -57083.56, -57083.56, -68495.5, -68500.56, -19360.56, 547.5], '10.10.10.13': [0.5, 42.5, 87.44, 86.44, 86.44, 46.5, 46.5, 53.5, 48.44, 50.5, 52.5, 52.5, 51.44, 49.44, 50.5, 55.5, 50.5, 51.5, 2712.5, 2712.5, 2708.44, 2708.44, 2708.44, 463.5], '10.10.10.14': [0.44, 17016.5, 46798.44, 68174.5, 68174.5, 68001.44, 68009.44, 64836.5, 68904.44, 68834.5, 68839.5, 68841.5, 68840.44, 68841.5, 69038.44, 95713.44, 67019.5, 65328.44, 39263.44, 71413.44, 71367.44, 71411.5, 20216.44, 20.44], '10.10.10.15': [0.5, 37.5, 16.44, 16.44, 16.44, 14.44, 14.44, 14.44, 8.44, 8.44, 8.44, 8.44, 8.44, 8.44, 8.44, 16.5, 16.5, 16.5, -0.56, -0.56, -0.56, -0.56, 15.5, 1215.44], '10.10.10.16': [-0.56, 17785.5, 17894.5, 17482.5, 17482.5, -10705.5, -15168.56, -13549.5, 19691.5, 45340.5, 55600.5, 57301.44, 21740.88, 19844.44, 47595.75, 59497.44, 17659.44, -11242.06, -22987.5, 6284.5, 21707.57, 21872.44, 21777.44, -942.56], '10.10.10.17': [-0.56, 817.44, 791, 791, 791, -15214, -43039.69, -878.57, -891.57, -20236, 2178, 30009, 30002.43, 4754, -1207.57, -1218.57, -1215, -1213, -1208.57, -1210.57, -1210.57, -1210.57, -1203, -217.57]}
@@ -35,20 +532,20 @@ Controller5StepDefaultQ =  {'10.10.10.11': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0
 Controller6StepDefaultQ =  {'10.10.10.11': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, -0.56, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5], '10.10.10.12': [0.44, -18166, -67453.57, -67453.57, -67456.57, -67456.57, -67456.57, -67456.57, -46634.01, -34669.01, -46452.01, -67179.57, -91504.01, -96038.01, -96128.01, -66313.01, -40787.57, -40787.57, -40787.57, -40787.57, -40787.57, -42671.57, -42672.57, -70309.01, -16209.57, -697.01, -1336.57, -1336.57, -1336.57, -1336.57, -1336.57], '10.10.10.13': [0.5, -577.56, -569.56, -566, -566, -565, -565, -561, -515, -517.56, -521.56, -518.56, -559, -521, -513, -516.56, -519.56, -517, -517, -516, -516, -514, -516.56, -519.56, -523, -522.56, 1755.44, 1755.44, 1755.44, 1755.44, 1755.44], '10.10.10.14': [0.5, 16825.44, 16797.5, 69010.51, 69019.51, 69018.45, 69003.45, 67509.51, 67182.45, 67206.51, 87230.45, 69793.45, 69800.45, 90577.45, 68400.45, 68399.51, 66213.51, 65981.51, 65956.45, 65582.51, 65586.45, 63952.45, 64403.45, 69094.45, 20177.45, 12.45, -20.49, -20.49, -20.49, -20.49, -20.49], '10.10.10.15': [0.44, -124.56, -95.56, -115.56, -115.56, -115.56, -114, -114, -112, -111, 2320.44, 2310, 2310, 2329.44, 2331, 2331, 2326.44, 2325.44, 2325.44, 2325.44, 2325.44, 2327.44, 2327.44, 2320.44, 144.44, 311.44, 311.44, 311.44, 311.44, 311.44, 311.44], '10.10.10.16': [0.5, 15314.5, 15709.44, 43120.5, 15830.44, -1979.94, -16475, -27037.56, -27261, -26498.56, -14482, -26272, -25272.56, -17287.56, -27104, -26457.56, -30319, -29491, -29079.56, -30309.56, -30305.56, -33725.38, -32113.57, 17527.43, 15048.43, -706.57, -706.57, -706.57, -706.57, -706.57, -706.57], '10.10.10.17': [0.5, -1004.56, -791.5, -572.56, -572.56, -572.56, -570.5, -560.56, 226.5, 777.44, 214.5, 1200.44, 619.5, 183.5, 601.5, 595.44, 532.44, 31822.5, 42049.44, 19222.44, 224.5, -17181.5, 2151.44, -453.5, -1241.56, 203.44, -191.5, -191.5, -191.5, -190.5, -190.5]}
 
 
-
 # 连接Controller1服务器
 CtrlC = zerorpc.Client(heartbeat=None, timeout=300)
-CtrlC.connect('tcp://192.168.11.179:4243')
+CtrlC.connect('tcp://192.168.31.208:4243')
 Ctr2C = zerorpc.Client(heartbeat=None, timeout=300)
-Ctr2C.connect('tcp://192.168.11.176:4243')
+Ctr2C.connect('tcp://192.168.31.181:4243')
 Ctr3C = zerorpc.Client(heartbeat=None, timeout=300)
-Ctr3C.connect('tcp://192.168.11.121:4243')
+Ctr3C.connect('tcp://192.168.31.141:4243')
 Ctr4C = zerorpc.Client(heartbeat=None, timeout=300)
-Ctr4C.connect('tcp://192.168.11.114:4243')
+Ctr4C.connect('tcp://192.168.31.99:4243')
 Ctr5C = zerorpc.Client(heartbeat=None, timeout=300)
-Ctr5C.connect('tcp://192.168.11.113:4243')
+Ctr5C.connect('tcp://192.168.31.20:4243')
 Ctr6C = zerorpc.Client(heartbeat=None, timeout=300)
-Ctr6C.connect('tcp://192.168.11.121:4243')
+Ctr6C.connect('tcp://192.168.31.81:4243')
+
 
 # zerorpc
 class RPCClient:
@@ -214,8 +711,8 @@ class RPCClient:
         self.recv_data6 = None
         self.controller6_data = {}
 
-        # self.op_input = '1,2,3,4,5 5,5,5,5,5'
-        self.op_input = '4,5 5,5'
+        self.op_input = '1,2,3,4,5 5,5,5,5,5'
+        # self.op_input = '4,5 5,5'
         self.controller = list(map(int,self.op_input.split(' ')[0].split(',')))
         self.mode = list(map(int,self.op_input.split(' ')[1].split(',')))
 
@@ -226,62 +723,64 @@ class RPCClient:
         # t3 = Thread(target=self.op_input_fun)
         # t3.start()
 
-    def op_input_fun(self):
-        while True:
-            # self.op_input = input('input:')
-            if self.op_input:
-                self.controller = list(map(int,self.op_input.split(' ')[0].split(',')))
-                self.mode = list(map(int,self.op_input.split(' ')[1].split(',')))
-                self.control_mode = {}
-                for i in range(len(self.controller)):
-                    self.control_mode[self.controller[i]] = self.mode[i]
+    def op_input_fun(self, op_input):
+        self.op_input = op_input
+        if self.op_input:
+            self.controller = list(map(int,self.op_input.split(' ')[0].split(',')))
+            self.mode = list(map(int,self.op_input.split(' ')[1].split(',')))
+            self.control_mode = {}
+            for i in range(len(self.controller)):
+                self.control_mode[self.controller[i]] = self.mode[i]
+
+        if 6 not in self.mode:
             if len(self.controller) > 1:
                 proc_record = []
                 for j in range(len(self.controller)):
                     if self.controller[j] == 1:
-                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3:
+                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3 or self.mode[j] == 7:
                             self.controller1()
                         else:
+
                             p = Process(target=self.controller1)
                             p.start()
                             proc_record.append(p)
                     elif self.controller[j] == 2:
-                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3:
+                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3 or self.mode[j] == 7:
                             self.controller2()
                         else:
                             p = Process(target=self.controller2)
                             p.start()
                             proc_record.append(p)
                     elif self.controller[j] == 3:
-                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3:
+                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3 or self.mode[j] == 7:
                             self.controller3()
                         else:
                             p = Process(target=self.controller3)
                             p.start()
                             proc_record.append(p)
                     elif self.controller[j] == 4:
-                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3:
+                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3 or self.mode[j] == 7:
                             self.controller4()
                         else:
                             p = Process(target=self.controller4)
                             p.start()
                             proc_record.append(p)
                     elif self.controller[j] == 5:
-                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3:
+                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3 or self.mode[j] == 7:
                             self.controller5()
                         else:
                             p = Process(target=self.controller5)
                             p.start()
                             proc_record.append(p)
                     elif self.controller[j] == 6:
-                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3:
+                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3 or self.mode[j] == 7:
                             self.controller6()
                         else:
                             p = Process(target=self.controller6)
                             p.start()
                             proc_record.append(p)
                     elif self.controller[j] == 7:
-                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3:
+                        if self.mode[j] == 1 or self.mode[j] ==4 or self.mode[j] ==3 or self.mode[j] == 7:
                             self.controller7()
                         else:
                             p = Process(target=self.controller7)
@@ -305,7 +804,44 @@ class RPCClient:
                         self.controller6()
                     elif co == 7:
                         self.controller7()
-            print(self.op_input, self.mode)
+        else:
+            for i in range(len(Controller1StepDefaultQ['10.10.10.11'])):
+                step_point = {}
+                for j in range(len(self.controller)):
+                    if self.controller[j] == 1:
+                        point_dict = {}
+                        for key in list(Controller1StepDefaultQ.keys()):
+                            point_dict[key] = Controller1StepDefaultQ[key][i]
+                        step_point[1] = point_dict
+                    elif self.controller[j] == 2:
+                        point_dict = {}
+                        for key in list(Controller2StepDefaultQ.keys()):
+                            point_dict[key] = Controller2StepDefaultQ[key][i]
+                        step_point[2] = point_dict
+                    elif self.controller[j] == 3:
+                        point_dict = {}
+                        for key in list(Controller3StepDefaultQ.keys()):
+                            point_dict[key] = Controller3StepDefaultQ[key][i]
+                        step_point[3] = point_dict
+                    elif self.controller[j] == 4:
+                        point_dict = {}
+                        for key in list(Controller4StepDefaultQ.keys()):
+                            point_dict[key] = Controller4StepDefaultQ[key][i]
+                        step_point[4] = point_dict
+                    elif self.controller[j] == 5:
+                        point_dict = {}
+                        for key in list(Controller5StepDefaultQ.keys()):
+                            point_dict[key] = Controller5StepDefaultQ[key][i]
+                        step_point[5] = point_dict
+                    elif self.controller[j] == 6:
+                        point_dict = {}
+                        for key in list(Controller6StepDefaultQ.keys()):
+                            point_dict[key] = Controller6StepDefaultQ[key][i]
+                        step_point[6] = point_dict
+                self.point_control(step_point)
+                time.sleep(T)
+
+        print(self.op_input, self.mode)
 
     def controller1(self):
         if 1 in self.controller:
@@ -352,6 +888,10 @@ class RPCClient:
                 self.controller1_data = {'mechine': 'controller1', 'mode': 5, 'track_stream': control_dict}
                 self.recv_data = CtrlC.control(self.controller1_data,T)
                 print('code5 recv data:',self.recv_data)
+            elif self.control_mode[1] == 7:
+                CtrlC.get_data(Controller1StepDefaultQ, T)
+            elif self.control_mode[1] == 8:
+                CtrlC.set_start()
             elif self.control_mode[1] == 55:
                 self.recv_data = CtrlC.control(self.controller1_data, T)
 
@@ -403,6 +943,10 @@ class RPCClient:
                 control_dict   = Controller2StepDefaultQ
                 self.controller2_data = {'mechine': 'controller2', 'mode': 5, 'track_stream': control_dict}
                 self.recv_data2 = Ctr2C.control(self.controller2_data,T)
+            elif self.control_mode[2] == 7:
+                Ctr2C.get_data(Controller2StepDefaultQ, T)
+            elif self.control_mode[2] == 8:
+                Ctr2C.set_start()
 
         self.controller2_data = {}
 
@@ -449,6 +993,10 @@ class RPCClient:
                 control_dict   = Controller3StepDefaultQ
                 self.controller3_data = {'mechine': 'controller3', 'mode': 5, 'track_stream': control_dict}
                 self.recv_data3 = Ctr3C.control(self.controller3_data,T)
+            elif self.control_mode[3] == 7:
+                Ctr3C.get_data(Controller3StepDefaultQ, T)
+            elif self.control_mode[3] == 8:
+                Ctr3C.set_start()
 
         self.controller3_data = {}
 
@@ -496,6 +1044,10 @@ class RPCClient:
                 control_dict   = Controller4StepDefaultQ
                 self.controller4_data = {'mechine': 'controller4', 'mode': 5, 'track_stream': control_dict}
                 self.recv_data4 = Ctr4C.control(self.controller4_data,T)
+            elif self.control_mode[4] == 7:
+                Ctr4C.get_data(Controller4StepDefaultQ, T)
+            elif self.control_mode[4] == 8:
+                Ctr4C.set_start()
 
         self.controller4_data = {}
 
@@ -542,6 +1094,10 @@ class RPCClient:
                 control_dict   = Controller5StepDefaultQ
                 self.controller5_data = {'mechine': 'controller5', 'mode': 5, 'track_stream': control_dict}
                 self.recv_data5 = Ctr5C.control(self.controller5_data,T)
+            elif self.control_mode[5] == 7:
+                Ctr5C.get_data(Controller5StepDefaultQ, T)
+            elif self.control_mode[5] == 8:
+                Ctr5C.set_start()
 
         self.controller5_data = {}
 
@@ -588,8 +1144,57 @@ class RPCClient:
                 control_dict = Controller6StepDefaultQ
                 self.controller6_data = {'mechine': 'controller6', 'mode': 5, 'track_stream': control_dict}
                 self.recv_data6 = Ctr6C.control(self.controller6_data,T)
+            elif self.control_mode[6] == 7:
+                Ctr6C.get_data(Controller6StepDefaultQ, T)
+            elif self.control_mode[6] == 8:
+                Ctr6C.set_start()
 
         self.controller6_data = {}
+
+    def point_control(self, point_data):
+        if len(point_data) > 1:
+            proc_record = []
+            for key,val in point_data.items():
+                if key == 1:
+                    p = Process(target=CtrlC.step_control(val))
+                    p.start()
+                    proc_record.append(p)
+                elif key == 2:
+                    p = Process(target=Ctr2C.step_control(val))
+                    p.start()
+                    proc_record.append(p)
+                elif key == 3:
+                    p = Process(target=Ctr3C.step_control(val))
+                    p.start()
+                    proc_record.append(p)
+                elif key == 4:
+                    p = Process(target=Ctr4C.step_control(val))
+                    p.start()
+                    proc_record.append(p)
+                elif key == 5:
+                    p = Process(target=Ctr5C.step_control(val))
+                    p.start()
+                    proc_record.append(p)
+                elif key == 6:
+                    p = Process(target=Ctr6C.step_control(val))
+                    p.start()
+                    proc_record.append(p)
+            for p in proc_record:
+                p.join()
+        else:
+
+            if list(point_data.keys())[0] == 1:
+                CtrlC.step_control(list(point_data.values())[0])
+            elif list(point_data.keys())[0] == 2:
+                Ctr2C.step_control(list(point_data.values())[0])
+            elif list(point_data.keys())[0] == 3:
+                Ctr3C.step_control(list(point_data.values())[0])
+            elif list(point_data.keys())[0] == 4:
+                Ctr4C.step_control(list(point_data.values())[0])
+            elif list(point_data.keys())[0] == 5:
+                Ctr5C.step_control(list(point_data.values())[0])
+            elif list(point_data.keys())[0] == 6:
+                Ctr6C.step_control(list(point_data.values())[0])
 
     def zerorpc_client(self):
         print('zerorpc client')
@@ -606,7 +1211,300 @@ class RPCClient:
         print('total time %s' % (time.clock() - start))
 
 
+class MainWin(Tk):
+
+    def __init__(self):
+        super().__init__()
+        self.set_main_win()
+
+        Button(self, text='急停和运动',bg='white', font=("Arial,12"), width=12, height=1, command=self.emergency_stop_move).place(x=260,
+                                                                                                               y=200)
+        Button(self, text='自检',bg='white', font=("Arial,12"), width=12, height=1, command=self.check).place(x=260,
+                                                                                                                  y=240)
+        Button(self, text='退出',bg='white', font=("Arial,12"), width=12, height=1, command=self.quit_mainloop).place(
+            x=260, y=280)
+
+        self.state ='在线'
+        self.count = 0
+        self.delay_time = [0.0,0.0,0.0,0.0,0.0]
+        self.err_msg =''
+        # print(CtrlC.delay_err())
+
+        self.c = RPCClient()
+
+    def login(self):
+        pass
+    def register(self):
+        pass
+    def quit_mainloop(self):
+        pass
+
+    def check(self):
+
+        self.check_win = tk.Toplevel(self)
+        self.check_win.title('自检')
+        self.check_win.geometry("800x900")
+
+        deley_err = []
+        deley_err.append(CtrlC.delay_err())
+        deley_err.append(Ctr2C.delay_err())
+        deley_err.append(Ctr3C.delay_err())
+        deley_err.append(Ctr4C.delay_err())
+        deley_err.append(Ctr5C.delay_err())
+
+
+
+
+        tk.Label(self.check_win, text='延时时间', font=("KaiTi", 20)).place(x=440, y=10)
+
+        self.con1_state = tk.Label(self.check_win, text='机械臂1', font=("KaiTi", 20))
+        self.con1_state.place(x=50, y=50)
+        self.con1_ip = tk.Label(self.check_win, text="192.168.11.159", font=("KaiTi", 20)).place(x=200, y=50)
+        tk.Label(self.check_win, text=str(round(deley_err[0]['delay_time'], 4))+ 'ms', font=("KaiTi", 20)).place(x=470, y=50)
+
+        self.con2_state = tk.Label(self.check_win, text='机械臂2', font=("KaiTi", 20))
+        self.con2_state.place(x=50, y=100)
+        self.con2_ip = tk.Label(self.check_win, text="192.168.11.159", font=("KaiTi", 20)).place(x=200, y=100)
+        tk.Label(self.check_win, text=str(round(deley_err[1]['delay_time'], 4))+ 'ms', font=("KaiTi", 20)).place(x=470, y=100)
+
+        self.con3_state = tk.Label(self.check_win, text='机械臂3', font=("KaiTi", 20))
+        self.con3_state.place(x=50, y=150)
+        self.con3_ip = tk.Label(self.check_win, text="192.168.11.159", font=("KaiTi", 20)).place(x=200, y=150)
+        tk.Label(self.check_win, text=str(round(deley_err[2]['delay_time'], 4))+ 'ms', font=("KaiTi", 20)).place(x=470, y=150)
+
+        self.con4_state = tk.Label(self.check_win, text='机械臂4', font=("KaiTi", 20))
+        self.con4_state.place(x=50, y=200)
+        self.con4_ip = tk.Label(self.check_win, text="192.168.11.159", font=("KaiTi", 20)).place(x=200, y=200)
+        tk.Label(self.check_win, text=str(round(deley_err[3]['delay_time'], 4)) + 'ms', font=("KaiTi", 20)).place(x=470, y=200)
+
+
+        self.con5_state = tk.Label(self.check_win, text='机械臂5', font=("KaiTi", 20))
+        self.con5_state.place(x=50, y=250)
+        self.con5_ip = tk.Label(self.check_win, text="192.168.11.159", font=("KaiTi", 20)).place(x=200, y=250)
+        tk.Label(self.check_win, text=str(round(deley_err[4]['delay_time'], 4)) + 'ms', font=("KaiTi", 20)).place(x=470, y=250)
+
+        tk.Label(self.check_win, text='错误信息', font=("KaiTi", 20)).place(x=50, y=350)
+        self.text = tk.Text(self.check_win, width=60, height=25, undo=True)
+        self.text.place(x=50, y=400)
+        self.text.insert(INSERT, str(deley_err[0]['err_msg']) + '\n'+ str(deley_err[1]['err_msg']) + '\n'+ str(deley_err[2]['err_msg']) \
+                         + '\n'+ str(deley_err[3]['err_msg']) + '\n'+ str(deley_err[4]['err_msg']) + '\n')
+
+        tk.Button(self.check_win, text='上报', bg='white', font=("Arial,8"), width=8, height=1,
+                  command=self.con1_rs).place(x=150, y=800)
+        tk.Button(self.check_win, text='清除', bg='white', font=("Arial,8"), width=8, height=1,
+                  command=self.con1_ys).place(x=400, y=800)
+
+        self.check_win.mainloop()
+
+    def report(self):
+        pass
+    def clear(self):
+        pass
+    def emergency_stop_move(self):
+        
+        self.options = tk.Toplevel(self)
+        self.options.title('%s' %S)
+        self.options.geometry("800x900")
+
+        # self.c.op_input_fun('1,2,3,4,5 7,7,7,7,7')
+        # self.c.op_input_fun('1,2,3,4,5 8,8,8,8,8')
+
+        tk.Label(self.options, text='软急停', font=("KaiTi", 20)).place(x=440, y=10)
+        tk.Label(self.options, text='硬急停', font=("KaiTi", 20)).place(x=600, y=10)
+
+        self.con1_state = tk.Label(self.options, text='在线', font=("KaiTi", 20))
+        self.con1_state.place(x=50, y=50)
+        self.con1_ip = tk.Label(self.options, text="192.168.11.159", font=("KaiTi", 20)).place(x=150, y=50)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=2, height=1,
+                  command=self.con1_rs).place(x=470, y=50)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=2, height=1,
+                  command=self.con1_ys).place(x=630, y=50)
+
+        self.con2_state = tk.Label(self.options, text=self.state, font=("KaiTi", 20))
+        self.con2_state.place(x=50, y=100)
+        self.con2_ip = tk.Label(self.options, text="192.168.11.159", font=("KaiTi", 20)).place(x=150, y=100)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=2, height=1,
+                  command=self.con2_rs).place(x=470, y=100)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=2, height=1,
+                  command=self.con2_ys).place(x=630, y=100)
+
+        self.con3_state = tk.Label(self.options, text=self.state, font=("KaiTi", 20))
+        self.con3_state.place(x=50, y=150)
+        self.con3_ip = tk.Label(self.options, text="192.168.11.159", font=("KaiTi", 20)).place(x=150, y=150)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=2, height=1,
+                  command=self.con3_rs).place(x=470, y=150)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=2, height=1,
+                  command=self.con3_ys).place(x=630, y=150)
+
+        self.con4_state = tk.Label(self.options, text=self.state, font=("KaiTi", 20))
+        self.con4_state.place(x=50, y=200)
+        self.con4_ip = tk.Label(self.options, text="192.168.11.159", font=("KaiTi", 20)).place(x=150, y=200)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=2, height=1,
+                  command=self.con4_rs).place(x=470, y=200)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=2, height=1,
+                  command=self.con4_ys).place(x=630, y=200)
+
+        self.con5_state = tk.Label(self.options, text=self.state, font=("KaiTi", 20))
+        self.con5_state.place(x=50, y=250)
+        self.con5_ip = tk.Label(self.options, text="192.168.11.159", font=("KaiTi", 20)).place(x=150, y=250)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=2, height=1,
+                  command=self.con5_rs).place(x=470, y=250)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=2, height=1,
+                  command=self.con5_ys).place(x=630, y=250)
+
+        tk.Label(self.options, text='总软急停', font=("KaiTi", 30)).place(x=150, y=300)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=3, height=1,
+                  command=self.con_rs).place(x=215, y=350)
+
+        tk.Label(self.options, text='总硬急停', font=("KaiTi", 30)).place(x=450, y=300)
+        tk.Button(self.options, text='', bg='red', font=("Arial,8"), width=3, height=1,
+                  command=self.con_ys).place(x=515, y=350)
+
+        self.choose_action = IntVar()
+        R1 = Radiobutton(self.options, text="动作1",font=("KaiTi", 20), variable=self.choose_action, value=1).place(
+            x=50,y=450)
+        R2 = Radiobutton(self.options, text="动作2", font=("KaiTi", 20), variable=self.choose_action, value=2).place(
+            x=180, y=450)
+        R3 = Radiobutton(self.options, text="动作3", font=("KaiTi", 20), variable=self.choose_action, value=3).place(
+            x=310, y=450)
+        R4 = Radiobutton(self.options, text="动作4", font=("KaiTi", 20), variable=self.choose_action, value=4).place(
+            x=420, y=450)
+        R5 = Radiobutton(self.options, text="动作5", font=("KaiTi", 20), variable=self.choose_action, value=5).place(
+            x=550, y=450)
+
+        self.choose_mechine  = [0,0,0,0,0]
+        self.choose_mechine[0] = IntVar()
+        self.choose_mechine[1] = IntVar()
+        self.choose_mechine[2] = IntVar()
+        self.choose_mechine[3] = IntVar()
+        self.choose_mechine[4] = IntVar()
+
+
+        C1 = Checkbutton(self.options, text="机器1", font=("KaiTi", 20),variable=self.choose_mechine[0], \
+                         onvalue=1, offvalue=0).place(x=50,y=550)
+        C2 = Checkbutton(self.options, text="机器2", font=("KaiTi", 20),variable=self.choose_mechine[1], \
+                         onvalue=1, offvalue=0).place(x=180, y=550)
+        C3 = Checkbutton(self.options, text="机器3", font=("KaiTi", 20),variable=self.choose_mechine[2], \
+                         onvalue=1, offvalue=0).place(x=310, y=550)
+        C4 = Checkbutton(self.options, text="机器4", font=("KaiTi", 20),variable=self.choose_mechine[3], \
+                         onvalue=1, offvalue=0).place(x=420, y=550)
+        C5 = Checkbutton(self.options, text="机器5", font=("KaiTi", 20),variable=self.choose_mechine[4], \
+                         onvalue=1, offvalue=0).place(x=550, y=550)
+
+        self.single_do_button = Button(self.options, text='单次执行', font=("Arial,8"), width=8, height=1,
+                  command=self.single_do).place(x=150, y=650)
+        self.loop_do_button = Button(self.options, text='循环执行', font=("Arial,8"), width=8, height=1,
+                                       command=self.loop_do).place(x=400, y=650)
+        self.stop_loop_button = Button(self.options, text='停止循环', font=("Arial,8"), width=8, height=1,
+                                       command=self.stop_loop).place(x=550, y=650)
+
+        show_list = ["Time:", "0", "0"]
+        self.label_bottom2 = tk.Label(self.options, width=(2 + 1) * 12, height=2, bg='white', text=show_list[0],
+                                font=('Tempus Sans ITC', 12))
+        self.label_bottom2.place(x=500, y=850)
+
+        self.em_update()
+
+        self.options.mainloop()
+    def single_do(self):
+        pass
+    def loop_do(self):
+        pass
+    def stop_loop(self):
+        pass
+    def con1_rs(self):
+        CtrlC.em_stop()
+    def con1_ys(self):
+        CtrlC.hw_stop()
+    def con2_rs(self):
+        Ctr2C.em_stop()
+    def con2_ys(self):
+        Ctr2C.hw_stop()
+    def con3_rs(self):
+        Ctr3C.em_stop()
+    def con3_ys(self):
+        Ctr3C.hw_stop()
+    def con4_rs(self):
+        Ctr4C.em_stop()
+    def con4_ys(self):
+        Ctr4C.hw_stop()
+    def con5_rs(self):
+        Ctr5C.em_stop()
+    def con5_ys(self):
+        Ctr5C.hw_stop()
+    def con_rs(self):
+        CtrlC.em_stop()
+        Ctr2C.em_stop()
+        Ctr3C.em_stop()
+        Ctr4C.em_stop()
+        Ctr5C.em_stop()
+    def con_ys(self):
+        CtrlC.hw_stop()
+        Ctr2C.hw_stop()
+        Ctr3C.hw_stop()
+        Ctr4C.hw_stop()
+        Ctr5C.hw_stop()
+
+    def em_update(self):
+        self.count +=1
+        if self.count %2 ==0:
+            self.state = '在线'
+        else:
+            self.state = '离线'
+        now = str(time.strftime('%Y-%m-%d %H:%M:%S'))
+        self.con1_state.config(text=self.state)
+        self.label_bottom2.config(text=now)
+        self.options.after(1024, self.em_update)
+        # self.after(1024, self.em_update)
+
+    def set_main_win(self):
+        self.title("ColonyControl")
+        # 设置窗口大小
+        self.width = 1200
+        self.height = 800
+        # 获取屏幕尺寸以计算布局参数，使窗口居屏幕中央
+        screenwidth = self.winfo_screenwidth()
+        screenheight = self.winfo_screenheight()
+        alignstr = '%dx%d+%d+%d' % (
+            self.width, self.height, (screenwidth - self.width) / 2, (screenheight - self.height) / 2)
+        self.geometry(alignstr)
+
+
+
+
 if __name__ == '__main__':
-    c = RPCClient()
-    c.op_input_fun()
-    # c.zerorpc_client()
+
+    '''直接运行'''
+    # op_input = input('input:')
+    # c = RPCClient()
+    # c.op_input_fun('1,2,3,4,5 0,0,0,0,0')
+
+
+    '''
+    python  界面，前期用一下
+    '''
+    # print(Ctr2C.delay_err())
+    # app = MainWin()
+    # app.mainloop()
+
+    # print(Ctr2C.delay_err())
+
+    '''
+    硬急停测试
+    '''
+    # CtrlC.hw_stop()
+    # Ctr2C.hw_stop()
+    # Ctr3C.hw_stop()
+    # Ctr4C.hw_stop()
+    # Ctr5C.hw_stop()
+    # CtrlC.hw_open()
+    # Ctr2C.hw_open()
+    # Ctr3C.hw_open()
+    # Ctr4C.hw_open()
+    # Ctr5C.hw_open()
+    # CtrlC.em_stop()
+
+    '''
+    后台服务
+    '''
+    app.run( port = 80, debug=True)

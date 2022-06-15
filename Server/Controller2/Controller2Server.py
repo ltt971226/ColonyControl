@@ -217,7 +217,12 @@ class RPCServer(object):
                         aios.trapezoidalMove(val[i], False, key, 1)
                     time.sleep(t)
             self.resp = {'mechine':'Controller1','mode':5,'succeedCode':True, 'gather_data':{}}
-            return self.resp                
+            return self.resp
+    def step_control(self,control_data):
+        if control_data:
+            for key, val in control_data.items():
+                aios.trapezoidalMove(val,False,key,1)
+
     def reply(self):
         return self.resp
         

@@ -1,6 +1,10 @@
 import zerorpc
 import time
 import aios
+from threading import Thread  # 导入线程函数
+import threading
+from multiprocessing import Process
+import psutil
 import json
 # zerorpc
 
@@ -20,8 +24,6 @@ def pos_init(control_dict):
 def connect_init():
     Server_IP_list = aios.broadcast_func()
         # 由于第一个ip是路由器的ip，无法使用将其剔除
-    if '10.10.10.200' in Server_IP_list:
-        Server_IP_list.remove('10.10.10.200')
     if Server_IP_list:
         for i in range(len(Server_IP_list)):
             aios.getRoot(Server_IP_list[i])
@@ -128,18 +130,64 @@ class RPCServer(object):
         self.resp = {'mechine':'Controller1','mode':-1,'succeedCode':False, 'gather_data':{}}
         
         #init
-        connect_init()
-        en = joint_enable()
-        init_dict = {}
-        for ip in sub_ips:
-            init_dict[ip] = 0.0
-        if en:
-            pos_init(init_dict)
+        # connect_init()
+        # en = joint_enable()
+        # init_dict = {}
+        # for ip in sub_ips:
+        #     init_dict[ip] = 0.0
+        # if en:
+        #     pos_init(init_dict)
+
+        self.step_data = {}
+        self.t = 0
+        self.start = False
+        self.stop = False
+
+        self.__flag = threading.Event()  # 用于暂停线程的标识
+        self.__flag.set()  # 设置为True
+        self.__running = threading.Event()  # 用于停止线程的标识
+        self.__running.set()  # 将running设置为True
+        self.a = threading.Thread(target=self.do_step)
+        self.a.start()
+
+
+    def do_step(self):
+        while self.__running.isSet():
+            self.__flag.wait()
+            print('main loop')
+            if self.start:
+                if self.step_data:
+                    print('trak')
+                    for i in range(len(self.step_data[sub_ips[0]])):
+                        for key, val in self.step_data.items():
+                            aios.trapezoidalMove(val[i], False, key, 1)
+                        if self.stop:
+                            break
+                        time.sleep(self.t)
+                        time.sleep(2)
+                self.start = False
+            time.sleep(0.1)
+
+    def test(self):
+        while self.__running.isSet():
+            self.__flag.wait()  # 为True时立即返回, 为False时阻塞直到内部的标识位为True后返回
+            print(time.time())
+            time.sleep(1)
+    def pause(self):
+        self.__flag.clear()     # 设置为False, 让线程阻塞
+
+    def resume(self):
+        self.__flag.set()    # 设置为True, 让线程停止阻塞
+
+    def stop(self):
+        self.__flag.set()       # 将线程从暂停状态恢复, 如何已经暂停的话
+        self.__running.clear()        # 设置为False
+
     def getObj(self):
         print('get data')
         return '1234'
     def sendObj(self, sentdata):
-        print('sentdata')
+        print(sentdata)
     def control(self, control_data,t):
         self.resp = {'mechine':'Controller1','mode':-1,'succeedCode':False, 'gather_data':{}}
         if control_data['mode'] == 2:
@@ -216,7 +264,20 @@ class RPCServer(object):
                         aios.trapezoidalMove(val[i], False, key, 1)
                     time.sleep(t)
             self.resp = {'mechine':'Controller1','mode':5,'succeedCode':True, 'gather_data':{}}
-            return self.resp                
+            return self.resp
+    def get_data(self,control_data,t):
+        print(control_data)
+        self.step_data = control_data
+        self.t = t
+        self.pause()
+
+    def set_start(self):
+        self.start = True
+        print('start')
+        self.resume()
+        print(123)
+        return
+
     def reply(self):
         return self.resp
         

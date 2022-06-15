@@ -290,6 +290,7 @@ def getError(server_ip, motor_number):
     except socket.timeout: # fail after 1 second of no activity
         print("Didn't receive anymore data! [Timeout]")
 
+
 # AIOS Remove error
 # Parameters: including server IP
 def clearError(server_ip, motor_number):
@@ -922,4 +923,44 @@ def broadcast_func():
                 return False
             break
 
+    print('\n')
+
+def shutdown(server_ip):
+    data = {
+        "method": "SET",
+        "reqTarget": "/",
+        "property":
+            "EN_BTS50085",
+        "EN_BTS50085": "0"
+    }
+
+    json_str = json.dumps(data)
+    print("Send JSON Obj:", json_str)
+    s.sendto(str.encode(json_str), (server_ip, PORT_rt))
+    try:
+        data, address = s.recvfrom(1024)
+        print('Server received from {}:{}'.format(address, data.decode('utf-8')))
+        # json_obj = json.loads(data.decode('utf-8'))
+    except socket.timeout:  # fail after 1 second of no activity
+        print("Didn't receive anymore data! [Timeout]")
+    print('\n')
+
+def openup(server_ip):
+    data = {
+        "method": "SET",
+        "reqTarget": "/",
+        "property":
+            "EN_BTS50085",
+        "EN_BTS50085": "1"
+    }
+
+    json_str = json.dumps(data)
+    print("Send JSON Obj:", json_str)
+    s.sendto(str.encode(json_str), (server_ip, PORT_rt))
+    try:
+        data, address = s.recvfrom(1024)
+        print('Server received from {}:{}'.format(address, data.decode('utf-8')))
+        # json_obj = json.loads(data.decode('utf-8'))
+    except socket.timeout:  # fail after 1 second of no activity
+        print("Didn't receive anymore data! [Timeout]")
     print('\n')
