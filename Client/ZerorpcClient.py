@@ -1477,13 +1477,13 @@ def udp_test():
     server_host_port = ('192.168.31.181', 8080)
 
     for i in len(range(Controller2StepDefaultQ['10.10.10.11'])):
-        step = {'10.10.10.11':Controller2StepDefaultQ['10.10.10.11'][i],
-                '10.10.10.12': Controller2StepDefaultQ['10.10.10.12'][i],
-                '10.10.10.13': Controller2StepDefaultQ['10.10.10.13'][i],
-                '10.10.10.14': Controller2StepDefaultQ['10.10.10.14'][i],
-                '10.10.10.15': Controller2StepDefaultQ['10.10.10.15'][i],
-                '10.10.10.16': Controller2StepDefaultQ['10.10.10.16'][i],
-                '10.10.10.17': Controller2StepDefaultQ['10.10.10.17'][i],}
+        step = {"10.10.10.11":Controller2StepDefaultQ['10.10.10.11'][i],
+                "10.10.10.12": Controller2StepDefaultQ['10.10.10.12'][i],
+                "10.10.10.13": Controller2StepDefaultQ['10.10.10.13'][i],
+                "10.10.10.14": Controller2StepDefaultQ['10.10.10.14'][i],
+                "10.10.10.15": Controller2StepDefaultQ['10.10.10.15'][i],
+                "10.10.10.16": Controller2StepDefaultQ['10.10.10.16'][i],
+                "10.10.10.17": Controller2StepDefaultQ['10.10.10.17'][i],}
 
         client_socket.sendto(str(step).encode('utf-8'), server_host_port)
 
