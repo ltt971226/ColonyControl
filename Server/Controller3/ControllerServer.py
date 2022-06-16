@@ -187,7 +187,7 @@ class RPCServer(object):
     def do_step(self):
 
 
-        udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        udp_socket = socket(AF_INET, SOCK_DGRAM)
         bind_addr = ('', 8080)
         udp_socket.bind(bind_addr)
 

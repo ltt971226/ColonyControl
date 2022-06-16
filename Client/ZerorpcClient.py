@@ -12,7 +12,7 @@ import os
 import tkinter as tk
 
 from scapy.all import srp,Ether,ARP,conf
-import socket
+from socket import *
 
 app = Flask(__name__)
 
@@ -1470,6 +1470,24 @@ class MainWin(Tk):
         self.geometry(alignstr)
 
 
+def udp_test():
+    client_socket = socket(AF_INET, SOCK_DGRAM)  # SOCK_DGRAM:UDP协议
+
+    # 2、定义一个接收消息的目标,8080是一个目标服务器的端口，127.0.0.1是目标服务器地址
+    server_host_port = ('192.168.31.181', 8080)
+
+    for i in len(range(Controller2StepDefaultQ['10.10.10.11'])):
+        step = {'10.10.10.11':Controller2StepDefaultQ['10.10.10.11'][i],
+                '10.10.10.12': Controller2StepDefaultQ['10.10.10.12'][i],
+                '10.10.10.13': Controller2StepDefaultQ['10.10.10.13'][i],
+                '10.10.10.14': Controller2StepDefaultQ['10.10.10.14'][i],
+                '10.10.10.15': Controller2StepDefaultQ['10.10.10.15'][i],
+                '10.10.10.16': Controller2StepDefaultQ['10.10.10.16'][i],
+                '10.10.10.17': Controller2StepDefaultQ['10.10.10.17'][i],}
+
+        client_socket.sendto(str(step).encode('utf-8'), server_host_port)
+
+
 
 
 if __name__ == '__main__':
@@ -1504,7 +1522,12 @@ if __name__ == '__main__':
     # Ctr5C.hw_open()
     # CtrlC.em_stop()
 
+    #udp测试
+
+    udp_test()
+
+
     '''
     后台服务
     '''
-    app.run( port = 80, debug=True)
+    # app.run( port = 80, debug=True)
